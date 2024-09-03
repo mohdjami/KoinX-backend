@@ -36,9 +36,6 @@ export const fetchTransactions = catchAsync(async (req, res, next) => {
   await Transaction.bulkWrite(bulkOps);
   res.status(201).json({
     status: "success",
-    data: {
-      transactions,
-    },
   });
 });
 
