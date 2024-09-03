@@ -3,9 +3,7 @@ import AppError from "../utils/appError.js";
 export async function createUser(req, res, next) {
   const address = req.params.address;
   const userExists = await User.findOne({ address });
-  if (userExists) {
-    return next(new AppError("User already exists", 400));
-  }
+  console.log(userExists);
   await User.create({
     address: address,
   });

@@ -1,3 +1,4 @@
+import AppError from "./appError.js";
 const sendErrorInDevelopment = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -7,14 +8,14 @@ const sendErrorInDevelopment = (err, res) => {
   });
 };
 const handleDuplicateFieldError = (err) => {
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
-
+  const value = err.errorResponse.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
 
 const handleCasteErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}`;
+  console.log(message);
   return new AppError(message, 400);
 };
 
@@ -43,14 +44,20 @@ const sendErrorInProduction = (err, res) => {
 
 export default (err, req, res, next) => {
   console.log(err);
+  console.log(process.env.NODE_ENV);
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
+  // err.message = err.message || "Something went wrong";
+
   if (process.env.NODE_ENV === "production") {
     let error = { ...err };
     if (error.name === "CastError") error = handleCasteErrorDB(error);
-    if (error.code === 11000) {
+    if (error.errorResponse.code === 11000) {
+      console.log("production error", error.errorResponse.code === 11000);
+
       error = handleDuplicateFieldError(error, res);
     }
+
     if (error.name === "ValidationError")
       error = handleValidationErrorDB(error);
     sendErrorInProduction(error, res);
